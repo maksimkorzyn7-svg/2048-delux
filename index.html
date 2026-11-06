@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#15132a"><title>2048 Deluxe</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none;font-family:system-ui,Roboto,sans-serif;color:#fff;background:#15132a}
+body{background:radial-gradient(circle at 50% -10%,#3a2f78,#15132a 65%)}
+.scr{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;gap:12px;padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom))}
+.scr.on{display:flex}
+#menu{justify-content:center;gap:14px}
+#shop{overflow-y:auto;justify-content:flex-start}
+.top{position:absolute;top:max(14px,env(safe-area-inset-top));right:14px}
+.hd{width:var(--B,100%);max-width:520px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pill{background:#0007;border-radius:20px;padding:8px 14px;font-weight:700;font-size:17px}
+.ib{width:44px;height:44px;border:0;border-radius:14px;background:#3a3566;color:#fff;font-size:20px;box-shadow:0 4px 0 #26224a}
+.ib:active{transform:translateY(3px);box-shadow:none}
+.card{flex:1;background:#2a2552;border-radius:12px;padding:6px;text-align:center;font-size:11px;opacity:.95}
+.card b{display:block;font-size:22px}
+h1{font-size:84px;line-height:1;font-weight:900;letter-spacing:-2px;background:linear-gradient(#ffe27a,#ff8a3d);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{opacity:.75;font-size:15px}
+.col{display:flex;flex-direction:column;gap:14px;width:min(300px,80vw);margin-top:8px}
+.btn{border:0;border-radius:16px;padding:14px 22px;font-size:18px;font-weight:800;color:#fff;background:linear-gradient(#8a6cff,#5a3df0);box-shadow:0 5px 0 #3b25b0}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #3b25b0}
+.btn.g{background:linear-gradient(#ffd34d,#ffa51f);box-shadow:0 5px 0 #b36b00;color:#3a2400}
+.btn.s{background:#3a3566;box-shadow:0 5px 0 #26224a}
+#logo{display:flex;gap:8px;animation:fl 3s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-8px)}}
+#board{position:relative;touch-action:none;background:#262244;border-radius:16px;box-shadow:0 8px 30px #0008}
+.cell{position:absolute;left:0;top:0;background:#322d57;border-radius:10px;width:var(--s);height:var(--s)}
+.t{position:absolute;left:0;top:0;width:var(--s);height:var(--s);transition:transform .12s cubic-bezier(.25,.8,.4,1);z-index:2}
+.t i{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:800}
+.sp{animation:sp .24s}.pop{animation:pop .22s}
+@keyframes sp{0%{transform:scale(0)}70%{transform:scale(1.14)}100%{transform:scale(1)}}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.3)}70%{transform:scale(.93)}100%{transform:scale(1)}}
+.sh{animation:shk .3s}
+@keyframes shk{20%{transform:translate(-5px,3px)}40%{transform:translate(5px,-4px)}60%{transform:translate(-3px,-2px)}80%{transform:translate(3px,2px)}}
+#board.md{outline:3px solid #ffd34d;animation:pl 1s infinite}
+@keyframes pl{50%{outline-color:#ff8a3d}}
+#boosts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:var(--B,100%);max-width:520px}
+.bo{border:0;border-radius:14px;background:#2f2a5c;color:#fff;padding:8px 2px;display:flex;flex-direction:column;align-items:center;gap:1px;box-shadow:0 4px 0 #1f1b40}
+.bo:active{transform:translateY(3px);box-shadow:none}
+.bo span{font-size:24px}.bo small{font-size:11px;opacity:.85}
+.bo em{font-style:normal;font-weight:800;font-size:13px;color:#ffd34d}
+.bo.on{background:#7c5cff}
+.tabs{display:flex;gap:10px;width:100%;max-width:520px}
+.tabs button{flex:1;padding:11px;border:0;border-radius:12px;background:#2a2552;color:#fff;font-weight:800;font-size:16px}
+.tabs button.on{background:#7c5cff}
+#grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:520px;padding-bottom:24px}
+.sc{background:#2a2552;border-radius:18px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.sc.sel{outline:2px solid #ffd34d}
+.sc small{opacity:.75;font-size:12px}
+.sc .btn{padding:9px 10px;font-size:15px;width:100%}
+.big{font-size:44px}
+.pvs{display:flex;gap:4px}
+.pv{display:flex;align-items:center;justify-content:center;font-weight:800}
+#ov{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:60}
+.box{background:#2a2552;border-radius:22px;padding:26px;text-align:center;width:86%;max-width:320px;display:flex;flex-direction:column;gap:12px}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#000c;padding:10px 18px;border-radius:20px;font-size:15px;opacity:0;transition:.25s;z-index:70;pointer-events:none;white-space:nowrap}
+#toast.on{opacity:1}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
+</style></head><body>
+<section id="menu" class="scr on">
+ <div class="top"><span class="pill">🪙 <b class="bal"></b></span></div>
+ <div id="logo"></div><h1>2048</h1><p class="sub">Рекорд: <b id="mbest"></b></p>
+ <div class="col">
+  <button class="btn" onclick="play()">▶ Играть</button>
+  <button class="btn g" onclick="show('shop')">🛍 Магазин</button>
+  <button class="btn s" id="snd" onclick="S.snd=!S.snd;sv();ui()"></button>
+ </div>
+ <p class="sub" style="position:absolute;bottom:14px">Автор: ALONE</p>
+</section>
+<section id="game" class="scr">
+ <div class="hd"><button class="ib" onclick="show('menu')">←</button><div class="pill">🪙 <b class="bal"></b></div><button class="ib" onclick="ask()">🔄</button></div>
+ <div class="hd"><div class="card">СЧЁТ<b id="sc">0</b></div><div class="card">РЕКОРД<b id="bs">0</b></div></div>
+ <div id="board"></div>
+ <div id="boosts"></div>
+</section>
+<section id="shop" class="scr">
+ <div class="hd" style="width:100%"><button class="ib" onclick="show('menu')">←</button><b style="font-size:20px">Магазин</b><div class="pill">🪙 <b class="bal"></b></div></div>
+ <div class="tabs"><button id="t0" onclick="tab(0)">Скины</button><button id="t1" onclick="tab(1)">Бусты</button></div>
+ <div id="grid"></div>
+</section>
+<div id="ov"><div class="box"></div></div><div id="toast"></div><canvas id="fx"></canvas>
+<script>
+const $=s=>document.querySelector(s);
+const D={coins:100,best:0,own:[0],skin:0,b:{u:1,h:1,s:1,x:1},snd:true,game:null};
+let S;try{S=Object.assign({},D,JSON.parse(localStorage.g2048||'{}'))}catch(e){S={...D}}
+const sv=()=>{try{localStorage.g2048=JSON.stringify(S)}catch(e){}};
+// ---- скины ----
+const SK=[
+{n:'Классика',p:0,h:38,st:-4,s:88,l:70},
+{n:'Океан',p:100,h:195,st:7,s:75,l:60},
+{n:'Закат',p:150,h:50,st:-11,s:92,l:62},
+{n:'Лес',p:200,h:110,st:11,s:55,l:52},
+{n:'Конфета',p:300,h:330,st:30,s:85,l:70,r:'50%'},
+{n:'Лёд',p:400,h:185,st:6,s:85,l:78},
+{n:'Неон',p:550,h:170,st:22,s:100,l:58,neon:1},
+{n:'Лава',p:750,h:8,st:7,s:95,l:48,glow:1},
+{n:'Золото',p:1000,h:46,st:1.5,s:92,l:56,gold:1},
+{n:'Космос',p:1400,h:255,st:16,s:75,l:46,glow:1,r:'50%'},
+{n:'Сакура',p:1900,h:342,st:3,s:75,l:80,r:'30%'},
+{n:'Радуга',p:2600,h:0,st:33,s:90,l:58,glow:1}];
+const BO=[
+{k:'u',ic:'↩️',n:'Отмена',p:30,d:'Вернуть последний ход'},
+{k:'h',ic:'🔨',n:'Молот',p:50,d:'Убрать любую плитку'},
+{k:'s',ic:'🔀',n:'Микс',p:40,d:'Перемешать плитки'},
+{k:'x',ic:'⚡',n:'Апгрейд',p:80,d:'Удвоить любую плитку'}];
+function sty(v,k=S.skin){const o=SK[k],l=Math.log2(v),h=((o.h+l*o.st)%360+360)%360,L=Math.max(30,o.l-l*1.4),
+c=`hsl(${h} ${o.s}% ${L}%)`,c2=`hsl(${(h+12)%360} ${o.s}% ${Math.max(20,L-14)}%)`;
+let bg=`linear-gradient(145deg,${c},${c2})`,fg=L>64?'#3a3340':'#fff',sh='inset 0 -4px 0 #0003,0 3px 6px #0005';
+if(o.neon){bg='#0d0b1f';fg=c;sh=`inset 0 0 0 2px ${c},0 0 14px ${c},inset 0 0 12px hsl(${h} 100% 50%/.4)`}
+else if(o.glow)sh+=`,0 0 ${6+l}px ${c}`;
+if(o.gold){bg=`linear-gradient(145deg,hsl(50 100% 80%),hsl(${h} 90% ${L-6}%) 55%,hsl(40 85% 38%))`;fg='#4a3000'}
+return{bg,fg,sh,c,r:o.r||'12px'}}
+function pv(v,z,t=v,k=S.skin){const o=sty(v,k),n=String(t).length;return `<div class="pv" style="width:${z}px;height:${z}px;background:${o.bg};color:${o.fg};box-shadow:${o.sh};border-radius:${o.r};font-size:${z*(n>3?.3:n>2?.36:.44)}px">${t}</div>`}
+// ---- состояние ----
+let g,score=0,won=0,over=0,busy=0,mode=null,undo=null,earn=0,G=8,C=70,B=300;
+const bd=$('#board');
+const P=(d,i,k)=>d==0?[k,i]:d==2?[3-k,i]:d==1?[i,k]:[i,3-k];
+const E=()=>[...Array(4)].map(()=>Array(4).fill(null));
+const vals=()=>g.map(r=>r.map(t=>t?t.v:0));
+const tiles=()=>g.flat().filter(Boolean);
+function layout(){B=Math.min(innerWidth-28,innerHeight*.5,500);G=Math.max(6,B*.026|0);C=(B-G*5)/4;
+ document.documentElement.style.setProperty('--B',B+'px');bd.style.width=bd.style.height=B+'px';bd.style.setProperty('--s',C+'px');
+ if(!bd.querySelector('.cell'))for(let i=0;i<16;i++){const c=document.createElement('div');c.className='cell';bd.append(c)}
+ bd.querySelectorAll('.cell').forEach((c,i)=>c.style.transform=`translate(${G+(i%4)*(C+G)}px,${G+(i>>2)*(C+G)}px)`);
+ g&&tiles().forEach(t=>{place(t);paint(t)});cv.width=innerWidth;cv.height=innerHeight}
+function place(t){t.el.style.transform=`translate(${G+t.x*(C+G)}px,${G+t.y*(C+G)}px)`}
+function paint(t){const i=t.el.firstChild,o=sty(t.v),n=String(t.v).length;i.textContent=t.v;i.style.cssText=`background:${o.bg};color:${o.fg};box-shadow:${o.sh};border-radius:${o.r};font-size:${C*(n>4?.26:n>3?.32:n>2?.38:.46)}px`}
+function pop(i){i.classList.remove('pop','sp');void i.offsetWidth;i.classList.add('pop')}
+function mk(v,x,y,sp){const el=document.createElement('div');el.className='t';el.innerHTML='<i></i>';bd.append(el);const t={v,x,y,el,m:0};g[y][x]=t;paint(t);place(t);sp&&el.firstChild.classList.add('sp');return t}
+function build(a){bd.querySelectorAll('.t').forEach(e=>e.remove());g=E();a.forEach((r,y)=>r.forEach((v,x)=>v&&mk(v,x,y)))}
+function spawn(){const e=[];for(let y=0;y<4;y++)for(let x=0;x<4;x++)g[y][x]||e.push([x,y]);if(!e.length)return;const[x,y]=e[Math.random()*e.length|0];mk(Math.random()<.9?2:4,x,y,1)}
+function newGame(){score=0;won=0;over=0;earn=0;undo=null;mode=null;bd.classList.remove('md');build(E().map(r=>r.map(()=>0)));spawn();spawn();ui();saveG()}
+function saveG(){if(score>S.best)S.best=score;S.game=over?null:{c:vals(),sc:score,w:won,e:earn};sv()}
+function can(){for(let y=0;y<4;y++)for(let x=0;x<4;x++){const t=g[y][x];if(!t)return 1;if(x<3&&g[y][x+1]&&g[y][x+1].v==t.v||y<3&&g[y+1][x]&&g[y+1][x].v==t.v)return 1}return 0}
+function ui(){document.querySelectorAll('.bal').forEach(e=>e.textContent=S.coins);$('#sc').textContent=score;$('#bs').textContent=Math.max(S.best,score);$('#mbest').textContent=Math.max(S.best,score);
+ $('#snd').textContent=S.snd?'🔊 Звук: вкл':'🔇 Звук: выкл';
+ $('#boosts').innerHTML=BO.map(b=>`<button class="bo${mode==b.k?' on':''}" onclick="useB('${b.k}')"><span>${b.ic}</span><small>${b.n}</small><em>${S.b[b.k]||'🪙'+b.p}</em></button>`).join('')}
+// ---- ход ----
+function move(d){
+ if(busy||over||mode)return;
+ const pre=vals(),ps=score,ng=E(),dead=[],mg=[];let mv=0,cg=0;
+ for(let i=0;i<4;i++){let k=0,last=null;
+  for(let j=0;j<4;j++){const[x,y]=P(d,i,j),t=g[y][x];if(!t)continue;
+   if(last&&last.v==t.v&&!last.m){t.x=last.x;t.y=last.y;last.v*=2;last.m=1;dead.push(t);mg.push(last);score+=last.v;cg+=Math.ceil(last.v/16);mv=1}
+   else{const[nx,ny]=P(d,i,k++);if(nx!=t.x||ny!=t.y)mv=1;t.x=nx;t.y=ny;ng[ny][nx]=t;last=t;t.m=0}}}
+ if(!mv)return;
+ g=ng;busy=1;undo={c:pre,sc:ps,cg};earn+=cg;S.coins+=cg;
+ tiles().concat(dead).forEach(place);
+ setTimeout(()=>{
+  dead.forEach(t=>t.el.remove());let big=0;const r=bd.getBoundingClientRect();
+  mg.forEach(t=>{t.m=0;paint(t);pop(t.el.firstChild);big=Math.max(big,t.v);
+   const px=r.left+G+t.x*(C+G)+C/2,py=r.top+G+t.y*(C+G)+C/2;
+   boom(px,py,Math.min(30,6+Math.log2(t.v)*2),sty(t.v).c);if(t.v>=32)boom(px,py,Math.min(8,t.v/32),'#ffd34d',1)});
+  if(mg.length){beep(260+Math.log2(big)*40,.1,'triangle');navigator.vibrate&&navigator.vibrate(big>=128?30:12);if(big>=128){bd.classList.remove('sh');void bd.offsetWidth;bd.classList.add('sh')}}
+  else beep(160,.04);
+  spawn();busy=0;ui();saveG();endChk(big)},125)}
+function endChk(big){
+ if(big>=2048&&!won){won=1;S.coins+=200;ui();sv();ov(`<h2>🎉 2048!</h2><p>Бонус: 🪙 200</p><button class="btn" onclick="cl()">Продолжить</button><button class="btn s" onclick="cl();newGame()">Новая игра</button>`)}
+ else if(!can()){over=1;saveG();ov(`<h2>Игра окончена</h2><p>Счёт: <b>${score}</b></p><p>Заработано: 🪙 ${earn}</p><button class="btn" onclick="cl();newGame()">Новая игра</button><button class="btn s" onclick="cl();show('menu')">Меню</button>`)}}
+// ---- бусты ----
+function setMode(k){mode=k;bd.classList.toggle('md',!!k);ui();k&&toast(k=='h'?'Нажми на плитку, чтобы убрать':'Нажми на плитку, чтобы удвоить')}
+function useB(k){const B=BO.find(b=>b.k==k);if(busy||over)return;
+ if(mode==k)return setMode(null);
+ if(k=='u'&&!undo)return toast('Нечего отменять');
+ if(k=='s'&&tiles().length<2)return toast('Мало плиток');
+ if(!S.b[k]){if(S.coins<B.p)return toast('Не хватает монет 🪙');S.coins-=B.p;S.b[k]++;toast(`Куплено: ${B.n} −${B.p}🪙`)}
+ if(mode)setMode(null);
+ if(k=='u'){build(undo.c);score=undo.sc;S.coins=Math.max(0,S.coins-undo.cg);earn=Math.max(0,earn-undo.cg);undo=null;S.b.u--;beep(200,.15)}
+ else if(k=='s'){const ts=tiles(),cs=[];for(let y=0;y<4;y++)for(let x=0;x<4;x++)cs.push([x,y]);cs.sort(()=>Math.random()-.5);g=E();ts.forEach((t,i)=>{[t.x,t.y]=cs[i];g[t.y][t.x]=t;place(t)});S.b.s--;undo=null;beep(300,.2);busy=1;setTimeout(()=>{busy=0;endChk(0)},150)}
+ else setMode(k);
+ ui();saveG()}
+function tap(el){if(!mode||busy||!el)return;const t=tiles().find(t=>t.el==el);if(!t)return;
+ const r=el.getBoundingClientRect(),o=sty(t.v),x=r.left+r.width/2,y=r.top+r.height/2;let big=0;
+ if(mode=='h'){boom(x,y,22,o.c);el.remove();g[t.y][t.x]=null;beep(120,.15,'sawtooth')}
+ else{t.v*=2;big=t.v;paint(t);pop(el.firstChild);boom(x,y,16,o.c);beep(520,.12,'triangle')}
+ S.b[mode]--;mode=null;bd.classList.remove('md');undo=null;ui();saveG();endChk(big)}
+// ---- ввод ----
+let p0=null;
+bd.addEventListener('pointerdown',e=>{p0=[e.clientX,e.clientY,e.target.closest('.t')]});
+bd.addEventListener('pointermove',e=>{if(!p0)return;const dx=e.clientX-p0[0],dy=e.clientY-p0[1],a=Math.abs(dx),b=Math.abs(dy);
+ if(Math.max(a,b)>28){p0=null;move(a>b?(dx<0?0:2):(dy<0?1:3))}});
+bd.addEventListener('pointerup',e=>{if(p0){tap(p0[2])}p0=null});
+bd.addEventListener('pointercancel',()=>p0=null);
+addEventListener('keydown',e=>{const d={ArrowLeft:0,ArrowUp:1,ArrowRight:2,ArrowDown:3,a:0,w:1,d:2,s:3}[e.key];if(d!==undefined&&$('#game').classList.contains('on')){e.preventDefault();move(d)}});
+// ---- эффекты ----
+const cv=$('#fx'),cx=cv.getContext('2d');let PT=[],run=0;
+function boom(x,y,n,col,coin){for(let i=0;i<n;i++){const a=Math.random()*6.283,s=2+Math.random()*7;PT.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-5,r:3+Math.random()*5,col,c:coin,l:0})}if(!run){run=1;requestAnimationFrame(loop)}}
+function loop(){cx.clearRect(0,0,cv.width,cv.height);PT=PT.filter(p=>p.l<110);
+ for(const p of PT){p.vy+=.5;p.x+=p.vx;p.y+=p.vy;p.vx*=.99;
+  if(p.y>cv.height-p.r){p.y=cv.height-p.r;p.vy*=-.55;p.vx*=.8}
+  if(p.x<0||p.x>cv.width)p.vx*=-1;p.l++;
+  cx.globalAlpha=Math.min(1,(110-p.l)/30);cx.fillStyle=p.col;cx.beginPath();
+  p.c?cx.arc(p.x,p.y,p.r+1,0,7):cx.rect(p.x-p.r/2,p.y-p.r/2,p.r,p.r);cx.fill()}
+ cx.globalAlpha=1;PT.length?requestAnimationFrame(loop):(run=0,cx.clearRect(0,0,cv.width,cv.height))}
+let ac;function beep(f,d=.08,t='sine'){if(!S.snd)return;try{ac=ac||new(window.AudioContext||webkitAudioContext)();const o=ac.createOscillator(),v=ac.createGain();o.type=t;o.frequency.value=f;v.gain.setValueAtTime(.08,ac.currentTime);v.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.connect(v);v.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}}
+let tt;function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),1500)}
+const ov=h=>{$('#ov .box').innerHTML=h;$('#ov').style.display='flex'},cl=()=>$('#ov').style.display='none';
+const ask=()=>ov(`<h2>Начать заново?</h2><button class="btn" onclick="cl();newGame()">Да</button><button class="btn s" onclick="cl()">Нет</button>`);
+// ---- экраны и магазин ----
+function show(id){document.querySelectorAll('.scr').forEach(e=>e.classList.toggle('on',e.id==id));
+ if(id=='game')layout();if(id=='menu')$('#logo').innerHTML=[[2,'2'],[64,'0'],[8,'4'],[256,'8']].map(a=>pv(a[0],62,a[1])).join('');
+ if(id=='shop')tab(tb);ui()}
+function play(){if(over)newGame();show('game')}
+let tb=0;
+function tab(n){tb=n;$('#t0').classList.toggle('on',!n);$('#t1').classList.toggle('on',!!n);
+ $('#grid').innerHTML=n?BO.map(b=>`<div class="sc"><div class="big">${b.ic}</div><b>${b.n}</b><small>${b.d}</small><small>В запасе: ${S.b[b.k]}</small><button class="btn g" onclick="buyB('${b.k}')">🪙 ${b.p}</button></div>`).join('')
+ :SK.map((o,i)=>{const own=S.own.includes(i);return `<div class="sc${S.skin==i?' sel':''}"><div class="pvs">${[2,16,128,1024].map(v=>pv(v,34,v,i)).join('')}</div><b>${o.n}</b>${own?`<button class="btn ${S.skin==i?'s':''}" onclick="pick(${i})">${S.skin==i?'Выбрано ✓':'Выбрать'}</button>`:`<button class="btn g" onclick="buy(${i})">🪙 ${o.p}</button>`}</div>`}).join('')}
+function pick(i){S.skin=i;sv();tab(tb);g&&tiles().forEach(paint)}
+function buy(i){if(S.coins<SK[i].p)return toast('Не хватает монет 🪙');S.coins-=SK[i].p;S.own.push(i);ui();toast('Скин куплен!');pick(i)}
+function buyB(k){const b=BO.find(b=>b.k==k);if(S.coins<b.p)return toast('Не хватает монет 🪙');S.coins-=b.p;S.b[k]++;sv();ui();tab(1);toast(`Куплено: ${b.n}`)}
+addEventListener('resize',layout);
+layout();
+if(S.game){build(S.game.c);score=S.game.sc;won=S.game.w;earn=S.game.e||0}else newGame();
+show('menu');
+</script></body></html>
